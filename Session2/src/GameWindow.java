@@ -1,4 +1,5 @@
 import Models.Bullet;
+import Models.EnemyPlane;
 import Models.Plane;
 
 import javax.imageio.ImageIO;
@@ -8,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Vector;
 
 /**
@@ -16,7 +18,7 @@ import java.util.Vector;
 public class GameWindow extends Frame implements Runnable{
     Image backGround;
     Image planeImage;
-    Image enemyImage;
+    Image enemyPlaneImage;
     Image extraPlaneImage;
     Image bulletImage;
 //    int extraX = 400;
@@ -27,6 +29,7 @@ public class GameWindow extends Frame implements Runnable{
     int extraPlaneHeight;
     Plane plane;
     Plane extraPlane;
+    EnemyPlane enemyPlane;
     //Bullet bullet;
 
     BufferedImage bufferedImage;
@@ -34,6 +37,7 @@ public class GameWindow extends Frame implements Runnable{
     Thread thread;
 
     Vector<Bullet> bulletVector;
+    Vector<EnemyPlane> enemyPlaneVector;
 
     public GameWindow(){
         System.out.println("Game window constructor");
@@ -43,6 +47,7 @@ public class GameWindow extends Frame implements Runnable{
         extraPlane =  new Plane(400, 300);
         plane = new Plane(350, 500);
         bulletVector = new Vector<>();
+        enemyPlaneVector  = new Vector<>();
         this.addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent e) {
@@ -83,7 +88,7 @@ public class GameWindow extends Frame implements Runnable{
         try {
             backGround = ImageIO.read(new File("resources/background.png"));
             planeImage = ImageIO.read(new File("resources/plane4.png"));
-            enemyImage = ImageIO.read(new File("resources/plane1.png"));
+            enemyPlaneImage = ImageIO.read(new File("resources/plane1.png"));
             extraPlaneImage = ImageIO.read(new File("resources/plane2.png"));
             bulletImage = ImageIO.read(new File("resources/bullet.png"));
         } catch (IOException e) {
@@ -101,7 +106,7 @@ public class GameWindow extends Frame implements Runnable{
                 switch (e.getKeyCode()){
                     case KeyEvent.VK_SPACE:
                         Bullet bullet = new Bullet();
-                        bullet.moveTo(plane.x, plane.y);
+                        bullet.moveTo(extraPlane.x, extraPlane.y);
                         bulletVector.add(bullet);
                         break;
                     case KeyEvent.VK_LEFT:
@@ -147,11 +152,14 @@ public class GameWindow extends Frame implements Runnable{
     @Override
     public void update(Graphics g) {
         bufferedImageGraphics.drawImage(backGround, 0, 0, null);
-        for(Bullet bullet : bulletVector){
+        for(int i = 0; i < bulletVector.size(); i++){
+            Bullet bullet =  bulletVector.get(i);
             bufferedImageGraphics.drawImage(bulletImage, bullet.x, bullet.y, null);
         }
         bufferedImageGraphics.drawImage(planeImage, plane.x, plane.y, null);
-        //bufferedImageGraphics.drawImage(enemyImage,250,100,null);
+        for (EnemyPlane enemyPlane : enemyPlaneVector) {
+            bufferedImageGraphics.drawImage(enemyPlaneImage, enemyPlane.x, enemyPlane.y, null);
+        }
         bufferedImageGraphics.drawImage(extraPlaneImage, extraPlane.x, extraPlane.y, null);
         g.drawImage(bufferedImage, 0, 0, null);
         //System.out.println("Update");
@@ -164,25 +172,48 @@ public class GameWindow extends Frame implements Runnable{
 
     @Override
     public void run() {
-        while (true){
+        Random rand = new Random();
+        int t = 0;
+        while (true) {
             try {
                 Thread.sleep(27);
-//                for (Bullet bullet : bulletVector){
-//                    bullet.y -= 10;
-//                    if(bullet.y <= 0){
-//                        bulletVector.remove(bullet);
-//                    }
-//                }
+
+                enemyPlaneVector.add(new EnemyPlane(rand.nextInt(600) + 16, 70));
+
+                Iterator<EnemyPlane> enemyPlaneIterator = enemyPlaneVector.iterator();
+                while (enemyPlaneIterator.hasNext()) {
+                    EnemyPlane enemyPlane = enemyPlaneIterator.next();
+                    enemyPlane.y += 1;
+                    if (enemyPlane.y > 610) {
+                        enemyPlaneIterator.remove();
+                        break;
+                    }
+
+                Rectangle enemyPlaneRectangle = new Rectangle(enemyPlane.x, enemyPlane.y, enemyPlaneImage.getWidth(null), enemyPlaneImage.getHeight(null));
+
                 Iterator<Bullet> bulletIterator = bulletVector.iterator();
-                while(bulletIterator.hasNext()){
+                while (bulletIterator.hasNext()) {
                     Bullet bullet = bulletIterator.next();
-                    bullet.y -= 10;
-                    if(bullet.y <= 0){
+                    Rectangle bulletRectangle = new Rectangle(bullet.x, bullet.y, bulletImage.getWidth(null), bulletImage.getHeight(null));
+                    if (enemyPlaneRectangle.intersects(bulletRectangle)) {
+                        enemyPlaneIterator.remove();
                         bulletIterator.remove();
+                        break;
+                    }
+                }
+            }
+
+
+                Iterator<Bullet> bulletIterator1 = bulletVector.iterator();
+                while (bulletIterator1.hasNext()) {
+                    Bullet bullet = bulletIterator1.next();
+                    bullet.y -= 10;
+                    if (bullet.y <= 0) {
+                            bulletIterator1.remove();
                     }
                 }
                 repaint();
-            } catch (InterruptedException e) {
+            } catch(InterruptedException e){
                 e.printStackTrace();
             }
         }
