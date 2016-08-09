@@ -157,8 +157,8 @@ public class GameWindow extends Frame implements Runnable{
             bufferedImageGraphics.drawImage(bulletImage, bullet.x, bullet.y, null);
         }
         bufferedImageGraphics.drawImage(planeImage, plane.x, plane.y, null);
-        for (EnemyPlane enemyPlane : enemyPlaneVector) {
-            bufferedImageGraphics.drawImage(enemyPlaneImage, enemyPlane.x, enemyPlane.y, null);
+        for (int i = 0; i < enemyPlaneVector.size(); i++) {
+            bufferedImageGraphics.drawImage(enemyPlaneImage, enemyPlaneVector.get(i).x, enemyPlaneVector.get(i).y, null);
         }
         bufferedImageGraphics.drawImage(extraPlaneImage, extraPlane.x, extraPlane.y, null);
         g.drawImage(bufferedImage, 0, 0, null);
@@ -189,7 +189,11 @@ public class GameWindow extends Frame implements Runnable{
                         break;
                     }
 
-                Rectangle enemyPlaneRectangle = new Rectangle(enemyPlane.x, enemyPlane.y, enemyPlaneImage.getWidth(null), enemyPlaneImage.getHeight(null));
+                    Rectangle enemyPlaneRectangle = new Rectangle();
+                    for (int i = 0; i < enemyPlaneVector.size(); i++) {
+
+                        enemyPlaneRectangle = new Rectangle(enemyPlane.x, enemyPlane.y, enemyPlaneImage.getWidth(null), enemyPlaneImage.getHeight(null));
+                    }
 
                 Iterator<Bullet> bulletIterator = bulletVector.iterator();
                 while (bulletIterator.hasNext()) {
@@ -204,12 +208,12 @@ public class GameWindow extends Frame implements Runnable{
             }
 
 
-                Iterator<Bullet> bulletIterator1 = bulletVector.iterator();
-                while (bulletIterator1.hasNext()) {
-                    Bullet bullet = bulletIterator1.next();
+                Iterator<Bullet> bulletIterator = bulletVector.iterator();
+                while (bulletIterator.hasNext()) {
+                    Bullet bullet = bulletIterator.next();
                     bullet.y -= 10;
                     if (bullet.y <= 0) {
-                            bulletIterator1.remove();
+                            bulletIterator.remove();
                     }
                 }
                 repaint();
